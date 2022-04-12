@@ -5,7 +5,7 @@ Ban users that meet certain spam criteria
 To begin, you'll need to get telegram `ID` and `hash`
 [Check here](https://docs.telethon.dev/en/stable/basic/signing-in.html) on how to set that up
 
-Once done open `ban.py` and add your `ID` and `hash`
+Once done open `ban.py` and add your `ID` and `hash` and your `channel ID` 
 
 run `pip install -r requirements.py` to install needed requirements and also, run `python db.py` to set you local db up
 
