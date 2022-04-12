@@ -9,4 +9,4 @@ Once done open `ban.py` and add your `ID` and `hash`
 
 run `pip install -r requirements.py` to install needed requirements and also, run `python db.py` to set you local db up
 
-You can spin the bot on with `python ban.py`
+You can spin the bot on with `python ban.py` or to add tags that will be checked on users account do `python ban.py support,admin` for example to check users with the name 'admin' or 'support' 
