@@ -7,6 +7,6 @@ To begin, you'll need to get telegram `ID` and `hash`
 
 Once done open `ban.py` and add your `ID` and `hash` and your `channel ID` 
 
-run `pip install -r requirements.txt` to install needed requirements and also, run `python db.py` to set you local db up
+run `pip install -r requirements.txt` to install needed requirements and also, run `python db.py` to set your local db up
 
 You can spin the bot on with `python ban.py` or to add tags that will be checked on users account do `python ban.py support,admin` for example to check users with the name 'admin' or 'support' 
