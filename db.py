@@ -1,28 +1,36 @@
 import sqlite3
 
-conn = sqlite3.connect("sqlite.db")
+class DB():
+	def __init__(self):
+		self.conn = sqlite3.connect("sqlite.db", check_same_thread=False)
 
-def create():
-	conn.execute("""CREATE TABLE tags
-         (tag TEXT NOT NULL);""")
-	conn.close()
+	def create(self):
+		conn = self.conn
+		conn.execute("""CREATE TABLE tags
+			(tag TEXT NOT NULL PRIMARY KEY);""")
+		'''conn.execute("""CREATE TABLE users
+			(id TEXT NOT NULL PRIMARY KEY);""")'''
+		conn.close()
 
-def insert(data):
-	for value in data:
-		command = """INSERT INTO tags (tag) VALUES (?);"""
-		q = (value,)
+	def insert(self, data, table, column):
+		conn = self.conn
+		command = f"""INSERT OR IGNORE INTO {table} ({column}) VALUES (?);"""
+		q = (data,)
 		conn.execute(command, q)
 		conn.commit()
 
-def select():
-	cursor = conn.execute("SELECT tag from tags")
-	return cursor
+	def select(self, table, column):
+		conn = self.conn
+		cursor = conn.execute(f"SELECT {column} from {table}").fetchall()
+		return cursor
 
-def close():
-	conn.close()
+	def close(self):
+		self.conn.close()
 
 def main():
-	create()
+	db = DB()
+	db.create()
+	db.close()
 
 if __name__ == '__main__':
 	main()
