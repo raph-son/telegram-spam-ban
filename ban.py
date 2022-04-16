@@ -15,7 +15,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 db = DB()
 
-CHAT_ID = 
+CHAT_ID =
 BOT_TOKEN = ''
 
 updater = Updater(token=BOT_TOKEN)
@@ -83,16 +83,20 @@ def new_chat_members(update: Update, context: CallbackContext) -> None:
             last_name = user.last_name.lower()
         if first_name or last_name:
             admin_names = get_admins()
+            id = user.id
+            username = user.username
             if (first_name in admin_names) or (last_name in admin_names):
                 # ban user
                 bot.ban_chat_member(CHAT_ID, user.id, until_date=0)
+                db.insert_users(id, username)
             else:
                 for tag in ban_tags:
                     tag = tag[0]
                     if first_name == tag.lower() or last_name == tag.lower() or user.username.lower() == tag.lower():
                         bot.ban_chat_member(CHAT_ID, user.id, until_date=0)
+                        db.insert_users(id, username)
 
-def admin(update: Update, context: CallbackContext):
+def add(update: Update, context: CallbackContext):
     if update.message.from_user.id in [admin.user.id for admin in ADMINS]: # Make sure only admin can use Bot
         tags = update.message.text.split(" [") # example /admin ['admin', 'support']
         if len(tags) == 2:
@@ -100,8 +104,31 @@ def admin(update: Update, context: CallbackContext):
             for tag in tags:
                 db.insert(tag.replace("'",""), "tags", "tag")
 
-start_handler = CommandHandler('admin', admin)
-dispatcher.add_handler(start_handler)
+def view(update: Update, context: CallbackContext):
+    if update.message.from_user.id in [admin.user.id for admin in ADMINS]: # Make sure only admin can use Bot
+        users_ = db.select("users", "username")
+        if users_:
+            users = [user for user in users_[0]]
+            context.bot.send_message(chat_id=update.effective_chat.id, text=f"{users}")
+        else:
+            context.bot.send_message(chat_id=update.effective_chat.id, text="No User Banned yet")
+
+def remove(update: Update, context: CallbackContext):
+    if update.message.from_user.id in [admin.user.id for admin in ADMINS]: # Make sure only admin can use Bot
+        tags = update.message.text.split(" [") # example /admin ['admin', 'support']
+        if len(tags) == 2:
+            users = tags[1].strip('][').strip("'").strip('"').split(', ')
+            for user in users:
+                id = db.select_users(user)
+                for id_ in id:
+                    db.remove(id_)
+
+add_handler = CommandHandler('add', add)
+view_handler = CommandHandler('view', view)
+remove_handler = CommandHandler('remove', remove)
+dispatcher.add_handler(add_handler)
+dispatcher.add_handler(view_handler)
+dispatcher.add_handler(remove_handler)
 
 dispatcher.add_handler(ChatMemberHandler(new_chat_members, ChatMemberHandler.CHAT_MEMBER))
 
