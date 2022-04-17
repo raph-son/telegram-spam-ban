@@ -121,6 +121,7 @@ def remove(update: Update, context: CallbackContext):
             for user in users:
                 id = db.select_users(user)
                 for id_ in id:
+                    bot.unban_chat_member(CHAT_ID, id_, True)
                     db.remove(id_)
 
 add_handler = CommandHandler('add', add)
