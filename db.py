@@ -32,6 +32,11 @@ class DB():
 		conn.execute("DELETE FROM users WHERE id=?", (id, ))
 		conn.commit()
 
+	def remove_tag(self, tag):
+		conn = self.conn
+		conn.execute("DELETE FROM tags WHERE tag=?", (tag, ))
+		conn.commit()
+
 	def select(self, table, column):
 		conn = self.conn
 		cursor = conn.execute(f"SELECT {column} from {table}").fetchall()
@@ -40,6 +45,11 @@ class DB():
 	def select_users(self, username):
 		conn = self.conn
 		cursor = conn.execute(f"SELECT id from users WHERE username=?", (username, )).fetchone()
+		return cursor
+
+	def select_tag(self, tag):
+		conn = self.conn
+		cursor = conn.execute(f"SELECT tag from tags WHERE tag=?", (tag, )).fetchone()
 		return cursor
 
 	def close(self):
