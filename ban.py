@@ -4,6 +4,7 @@ Ban users with names as admin or names match certain conditions on entering
 import logging
 
 from typing import Tuple, Optional
+from datetime import timedelta, datetime
 
 from telegram import Update, Bot, Chat, ChatMember, ParseMode, ChatMemberUpdated
 from telegram.ext import Updater, CommandHandler, CallbackContext, ChatMemberHandler
@@ -15,7 +16,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 db = DB()
 
-CHAT_ID =
+CHAT_ID = 
 BOT_TOKEN = ''
 
 updater = Updater(token=BOT_TOKEN)
@@ -93,7 +94,8 @@ def new_chat_members(update: Update, context: CallbackContext) -> None:
                 for tag in ban_tags:
                     tag = tag[0]
                     if first_name == tag.lower() or last_name == tag.lower() or user.username.lower() == tag.lower():
-                        bot.ban_chat_member(CHAT_ID, user.id, until_date=0)
+                        forever = (datetime.today() + timedelta(days=368)) # more than 366 days means ban forever
+                        bot.ban_chat_member(CHAT_ID, user.id, until_date=forever)
                         db.insert_users(id, username)
 
 def add(update: Update, context: CallbackContext):
@@ -103,26 +105,26 @@ def add(update: Update, context: CallbackContext):
             tags = tags[1].strip('][').strip("'").strip('"').split(', ')
             for tag in tags:
                 db.insert(tag.replace("'",""), "tags", "tag")
+            context.bot.send_message(chat_id=update.effective_chat.id, text="Done!")
 
 def view(update: Update, context: CallbackContext):
     if update.message.from_user.id in [admin.user.id for admin in ADMINS]: # Make sure only admin can use Bot
-        users_ = db.select("users", "username")
-        if users_:
-            users = [user for user in users_[0]]
-            context.bot.send_message(chat_id=update.effective_chat.id, text=f"{users}")
+        tags_ = db.select("tags", "tag")
+        if tags_:
+            tags = [tag[0] for tag in tags_]
+            context.bot.send_message(chat_id=update.effective_chat.id, text=f"{tags}")
         else:
-            context.bot.send_message(chat_id=update.effective_chat.id, text="No User Banned yet")
+            context.bot.send_message(chat_id=update.effective_chat.id, text="No Tag Yet")
 
 def remove(update: Update, context: CallbackContext):
     if update.message.from_user.id in [admin.user.id for admin in ADMINS]: # Make sure only admin can use Bot
         tags = update.message.text.split(" [") # example /admin ['admin', 'support']
         if len(tags) == 2:
-            users = tags[1].strip('][').strip("'").strip('"').split(', ')
-            for user in users:
-                id = db.select_users(user)
-                for id_ in id:
-                    bot.unban_chat_member(CHAT_ID, id_, True)
-                    db.remove(id_)
+            tags_ = tags[1].strip('][').strip("'").strip('"').split(', ')
+            for t in tags_:
+                match_tag = db.select_tag(t)
+                db.remove_tag(match_tag[0])
+            context.bot.send_message(chat_id=update.effective_chat.id, text="Done!")
 
 add_handler = CommandHandler('add', add)
 view_handler = CommandHandler('view', view)
