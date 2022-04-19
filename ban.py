@@ -72,7 +72,7 @@ def new_chat_members(update: Update, context: CallbackContext) -> None:
     was_member, is_member = result
     cause_name = update.chat_member.from_user.mention_html()
     member_name = update.chat_member.new_chat_member.user.mention_html()
-
+    forever = (datetime.today() + timedelta(days=368)) # more than 366 days means ban forever
     if not was_member and is_member:
         ban_tags = db.select("tags", "tag")
         user = update.chat_member.new_chat_member.user
@@ -86,17 +86,18 @@ def new_chat_members(update: Update, context: CallbackContext) -> None:
             admin_names = get_admins()
             id = user.id
             username = user.username
+            if username:
+                username = username.lower()
             if (first_name in admin_names) or (last_name in admin_names):
                 # ban user
-                bot.ban_chat_member(CHAT_ID, user.id, until_date=0)
-                db.insert_users(id, username)
+                bot.ban_chat_member(CHAT_ID, user.id, until_date=forever)
+                # db.insert_users(id, user.username)
             else:
                 for tag in ban_tags:
                     tag = tag[0]
-                    if first_name == tag.lower() or last_name == tag.lower() or user.username.lower() == tag.lower():
-                        forever = (datetime.today() + timedelta(days=368)) # more than 366 days means ban forever
+                    if first_name == tag.lower() or last_name == tag.lower() or username == tag.lower():
                         bot.ban_chat_member(CHAT_ID, user.id, until_date=forever)
-                        db.insert_users(id, username)
+                        # db.insert_users(id, user.username)
 
 def add(update: Update, context: CallbackContext):
     if update.message.from_user.id in [admin.user.id for admin in ADMINS]: # Make sure only admin can use Bot
